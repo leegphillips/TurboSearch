@@ -2,6 +2,8 @@ package com.github.leegphillips.TurboSearch;
 
 import org.apache.commons.cli.*;
 
+import java.util.List;
+
 public class CLIParams {
 
     private static final String F_OPTION = "f";
@@ -17,16 +19,21 @@ public class CLIParams {
                 .required(true)
                 .desc("to find")
                 .longOpt("find")
+                .hasArg(true)
                 .build();
         Option startOption = Option.builder(S_OPTION)
                 .required(false)
                 .desc("start position")
                 .longOpt("start")
+                .type(Integer.class)
+                .hasArg(true)
                 .build();
         Option endOption = Option.builder(E_OPTION)
                 .required(true)
                 .desc("end position")
                 .longOpt("end")
+                .type(Integer.class)
+                .hasArg(true)
                 .build();
 
         Options options = new Options();
@@ -39,7 +46,7 @@ public class CLIParams {
         CommandLine commandLine = parser.parse(options, args);
 
         toFind = commandLine.getOptionValue(F_OPTION);
-        start = Integer.parseInt(commandLine.getOptionValue(S_OPTION));
+        start = Integer.parseInt(commandLine.getOptionValue(S_OPTION, "0"));
         end = Integer.parseInt(commandLine.getOptionValue(E_OPTION));
     }
 

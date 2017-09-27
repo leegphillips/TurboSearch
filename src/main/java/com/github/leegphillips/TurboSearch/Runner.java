@@ -18,6 +18,6 @@ public class Runner implements CommandLineRunner {
     public void run(String... args) throws ParseException {
         LOGGER.info("Application starting");
 
-        List<File> results = new SearchImpl().search(new CLIParams(args));
+//        List<File> results = new SearchImpl().search(new CLIParams(args));
     }
 }

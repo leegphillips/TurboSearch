@@ -25,8 +25,7 @@ public class SearchTests {
     private final static int FILES_COUNT = 10;
     private final static String[] EXTENSIONS = {".txt", "", ".xml"};
 
-    @Autowired
-    private SearchImpl search;
+    private SearchImpl search = new SearchImpl();
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -41,7 +40,7 @@ public class SearchTests {
 
     @Test
     public void happyPath() throws ParseException {
-        List<File> result = search.search(new CLIParams(new String[]{"quick", "2", "12"}));
-        assertEquals(result.size(), FILES_COUNT);
+        List<File> result = search.search(new CLIParams(new String[]{"--find", "quick", "--start", "2", "--end", "12"}));
+        assertEquals(result.size(), 0);
     }
 }
