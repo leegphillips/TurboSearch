@@ -18,9 +18,6 @@ public class TurboSearch {
                     .supplyAsync(() -> contains(file, find, start, end));
             futures.add(future);
         }
-//
-//        CompletableFuture<Void> barrier = CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[]{}));
-//        barrier.get();
 
         return futures.stream().map(CompletableFuture::join)
                 .filter(Objects::nonNull)
