@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class TurboSearchTests {
+public class TurboSearchTest {
 
     private final static String FILE_CONTENTS = "the quick brown fox jumped over the lazy dog";
     private final static int FILES_COUNT = 10;
@@ -57,11 +57,16 @@ public class TurboSearchTests {
 
     @Test
     public void happySearchPath() throws IOException, ExecutionException, InterruptedException {
-        assertEquals(new TurboSearch().search(folder.getRoot(), "the", 0, 20).size(), FILES_COUNT);
+        assertEquals(new TurboSearch().search(folder.getRoot(), "the", 0, 20, "").size(), FILES_COUNT);
     }
 
     @Test
     public void happySearchMinPath() throws IOException, ExecutionException, InterruptedException {
-        assertEquals(new TurboSearch().search(folder.getRoot(), "dog", 0, FILE_CONTENTS.length()).size(), 1);
+        assertEquals(new TurboSearch().search(folder.getRoot(), "dog", 0, FILE_CONTENTS.length(), "").size(), 1);
+    }
+
+    @Test
+    public void suffixIsUsed() throws ExecutionException, InterruptedException {
+        assertEquals(new TurboSearch().search(folder.getRoot(), "the", 0, 20, "txt").size(), 4);
     }
 }
