@@ -8,10 +8,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -19,15 +16,15 @@ public class TurboSearch {
 
     private static final Logger LOG = LoggerFactory.getLogger(TurboSearch.class);
 
-    private static final ExecutorService POOL = Executors.newFixedThreadPool(4096);
+    private static final ExecutorService POOL = Executors.newFixedThreadPool(256);
 
-    public List<File> search(File folder, String find, int start, int end, String suffix) throws ExecutionException, InterruptedException {
-        LOG.debug("Start");
+    public List<File> search(File folder, String find, int start, int end, String suffix) {
+        LOG.trace("Start");
         final List<CompletableFuture<File>> futures = new ArrayList<>();
         folder.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
-                LOG.info("File: " + file.getName());
+                LOG.trace("File: " + file.getName());
                 if (file.getName().endsWith(suffix))
                     futures.add(CompletableFuture.supplyAsync(() -> contains(file, find, start, end), POOL));
                 return false;
@@ -39,22 +36,25 @@ public class TurboSearch {
                 .collect(toList());
     }
 
-    // TBD add proper error handling
     private File contains(File file, String find, int start, int end) {
         try {
             return matches(file, find, start, end) ? file : null;
         } catch (IOException e) {
-            return null;
+            throw new CompletionException(e);
         }
     }
 
-    boolean matches(File file, String find, int start, int end) throws IOException {
-        LOG.debug("Matching: " + file.getName());
+    private boolean matches(File file, String find, int start, int end) throws IOException {
+        LOG.trace("Matching: " + file.getName());
         int length = end - start;
         byte[] buffer = new byte[length];
         fillBuffer(new RandomAccessFile(file, "r"), buffer, start, end);
-        LOG.debug(file.getName() + " " + new String(buffer));
-        return new String(buffer).contains(find);
+        LOG.trace(file.getName() + " " + new String(buffer));
+        if (new String(buffer).contains(find)) {
+            System.out.println(file.getName());
+            return true;
+        }
+        return false;
     }
 
     private void fillBuffer(RandomAccessFile file, byte[] buffer, int start, int length) throws IOException {
@@ -65,14 +65,12 @@ public class TurboSearch {
         }
     }
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) {
         Stopwatch timer = Stopwatch.createStarted();
-        new TurboSearch().search(new File("."), args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), args[3])
-                .stream().forEach(file -> System.out.println(file.getName()));
-        LOG.debug("Time taken: " + timer.stop());
+        new TurboSearch().search(new File("."), args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), args[3]);
+        LOG.trace("Time taken: " + timer.stop());
         Stopwatch shutdown = Stopwatch.createStarted();
         POOL.shutdown();
-        LOG.debug("Shutdown time: " + shutdown.stop());
-        System.exit(0);
+        LOG.trace("Shutdown time: " + shutdown.stop());
     }
 }
