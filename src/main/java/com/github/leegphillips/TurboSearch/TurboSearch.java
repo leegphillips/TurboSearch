@@ -6,10 +6,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
 
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
 public class TurboSearch {
@@ -20,18 +23,9 @@ public class TurboSearch {
 
     public List<File> search(File folder, String find, int start, int end, String suffix) {
         LOG.trace("Start");
-        final List<CompletableFuture<File>> futures = new ArrayList<>();
-        folder.listFiles(new FileFilter() {
-            @Override
-            public boolean accept(File file) {
-                LOG.trace("File: " + file.getName());
-                if (file.getName().endsWith(suffix))
-                    futures.add(CompletableFuture.supplyAsync(() -> contains(file, find, start, end), POOL));
-                return false;
-            }
-        });
-
-        return futures.stream().map(CompletableFuture::join)
+        return stream(folder.listFiles(new EndWithFilter(suffix)))
+                .map(file -> CompletableFuture.supplyAsync(() -> contains(file, find, start, end), POOL))
+                .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .collect(toList());
     }
